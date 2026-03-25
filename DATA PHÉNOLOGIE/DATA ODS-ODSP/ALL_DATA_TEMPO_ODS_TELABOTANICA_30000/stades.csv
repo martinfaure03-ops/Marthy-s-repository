@@ -1,0 +1,9 @@
+stade_id;code_du_stade_phenologique;n_de_l_echelle_phenologique;echelle_phenologique;code_de_l_evenement_phenologique_majeur;code_de_l_evenement_phenologique_majeur;description_du_stade
+197;11;8;BBCH Tela Botanica;1;Développement des feuilles (tige principale);Environ 10% des feuilles épanouies
+200;15;8;BBCH Tela Botanica;1;Développement des feuilles (tige principale);Environ 50% des feuilles épanouies
+199;61;8;BBCH Tela Botanica;6;Floraison (tige principale);Environ 10% des fleurs épanouies
+195;65;8;BBCH Tela Botanica;6;Floraison (tige principale);Environ 50% des fleurs épanouies
+196;85;8;BBCH Tela Botanica;8;Maturation des fruits ou graines;Au moins 50% des fruits sont matures
+198;91;8;BBCH Tela Botanica;9;Sénescence et mort ou début de la période de dormance;Au moins 10% des feuilles sont jaunes
+201;95;8;BBCH Tela Botanica;9;Sénescence et mort ou début de la période de dormance;Au moins 50% des feuilles sont jaunes
+4577;8;5;Échelle inconnue;101;Migration;1ère apparition

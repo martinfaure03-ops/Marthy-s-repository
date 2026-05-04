@@ -1,0 +1,9 @@
+stade_id;code_du_stade_phenologique;n_de_l_echelle_phenologique;echelle_phenologique;code_de_l_evenement_phenologique_majeur;code_de_l_evenement_phenologique_majeur;description_du_stade
+4569;00;91;BBCH CREA Mont-Blanc;0;Germination / levée / développement des bourgeons;Débourrement - Pas encore
+4570;06;91;BBCH CREA Mont-Blanc;0;Germination / levée / développement des bourgeons;"Environ 10% des bourgeons sont ouverts, les autres sont fermés"
+4573;11;91;BBCH CREA Mont-Blanc;1;Développement des feuilles (tige principale);"Environ 10% des feuilles sont étalées, les autres feuilles sont recroquevillées"
+4575;61;91;BBCH CREA Mont-Blanc;6;Floraison (tige principale);"Environ 10% des fleurs s’épanouissent, les autres sont fermées"
+4574;92;91;BBCH CREA Mont-Blanc;9;Sénescence et mort ou début de la période de dormance;"Environ 10% des feuilles sont en partie jaunes ou marrons, les autres sont vertes"
+4571;95;91;BBCH CREA Mont-Blanc;9;Sénescence et mort ou début de la période de dormance;"Environ 50% des feuilles sont en partie jaunes ou marrons, les autres sont vertes"
+4572;96;91;BBCH CREA Mont-Blanc;9;Sénescence et mort ou début de la période de dormance;Chute de feuilles - Moitié
+4576;97;91;BBCH CREA Mont-Blanc;9;Sénescence et mort ou début de la période de dormance;Chute de feuilles - Fin

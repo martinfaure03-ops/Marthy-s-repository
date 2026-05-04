@@ -1,11 +1,11 @@
 ---
-title: "DÉMARCHE TEST V1 DATA ANALYSIS"
+title: "DÉMARCHE V1 DATA ANALYSIS"
 author: "Martin Faure"
 format: html
 editor: visual
 ---
 
-## Quarto
+### Quarto (code + texte + résultats)
 
 Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
 
@@ -14,15 +14,1118 @@ Quarto enables you to weave together content and executable code into a finished
 When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
 
 ```{r}
-1 + 1 + test commit 1
-test 2
-test 3
-test 4
+#| label: Test1 commit
+#| message: true
+#| warning: true
+#| paged-print: true
+
+git push : 
+  
+git pull :
 ```
 
 You can add options to executable code like this
 
 ```{r}
+#| label: Test2 code
+#| paged-print: false
+
+
+
 #| echo: false
 2 * 2
+```
+
+chunk : \`\`\`{r}\
+\
+\`\`\`
+
+########################### DÉMARCHE DATA ODSP
+
+```{r}
+
+############################################################################
+##############  I. DATA CLEANING - NETTOYAGE DES DONNÉES ###################
+############################################################################
+
+## Bibliothèques & packages nécessaires ??
+
+library(dplyr)
+library(stringr)
+
+## Manipulations script R (attention)
+gsub("data_raw_ODSP", "data_raw_ODSP", script)
+
+
+################################################################
+## I. 1.1) CHARGER LES DONNEES / Backup data (dataframe de base) : 
+# ≈ 34495 donnees – 32 taxons – mars 2026
+################################################################
+
+data_raw_ODSP <- read.table(
+  "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/export_all_ODSP_siteinternet.csv",
+  sep = ";",
+  header = TRUE,
+  fileEncoding = "latin1",
+  quote = "",
+  fill = TRUE,
+  comment.char = "",
+  check.names = FALSE
+)
+
+
+#####################################################
+### I. 1.2) Managing structure dataframe all data ods ##
+#####################################################
+
+## Rénitialiser une colonne
+data_raw_ODSP$ <- data_raw_ODSP$ma_variable
+
+## Changer de position une colonne (ex : jour julien) 
+data_raw_ODSP <- data_raw_ODSP[, c(1, 2, ncol(data_raw_ODSP), 4:(ncol(data_raw_ODSP)-1))]
+
+data_raw_ODSP <- data_raw_ODSP[, c(1, 2, 6, 3:5, 7:ncol(data_raw_ODSP))]
+which(names(data_raw_ODSP) == "jour_julien"). ## = position 3
+
+## Mettre les variables intéressantes à côté
+data_raw_ODSP <- data_raw_ODSP[, c(
+  1:3,      # garder les 3 premières
+  18, 19,   # ajouter tes colonnes ici
+  4:19,     # puis le reste
+  22:ncol(data_raw_ODSP)  # et les dernières
+)]
+
+## dernière colonne en position 6
+
+data_raw_ODSP <- data_raw_ODSP[, c(
+  1:5,        # colonnes 1 à 5
+  29,         # dernière colonne
+  6:28        # le reste
+)]
+
+## Supprimer les erreurs (chiffres) et mettre NA à la place
+data_raw_ODSP$bbch_code_clean <- ifelse(
+  grepl("^[0-9]{2,3}$", data_raw_ODSP$bbch_code),
+  data_raw_ODSP$bbch_code,
+  NA
+)
+
+## RENOMMER LES COLONNES
+names(data_raw_ODSP)[6] <- "bbch_code_clean" #renommer une col
+names(data_raw_ODSP)[4] <- "stade phenologique"
+names(data_raw_ODSP)[2] <- "date observation"
+colnames(data_raw_ODSP)
+names(data_raw_ODSP)[8] = "Date de creation"
+names(data_raw_ODSP)[9] = "Departement"
+names(data_raw_ODSP)[11] = "Details"
+names(data_raw_ODSP)[12] = "Date de creation"
+names(data_raw_ODSP)[12] = "Date de creation"
+names(data_raw_ODSP)[13] = "Mise à jour"
+names(data_raw_ODSP)[15] = "ID de l'espece"
+names(data_raw_ODSP)[22] = "Detail de l'individu"
+names(data_raw_ODSP)[26] = "Localite de la station"
+
+## Mettre en ordinal / factor – utile pour la suite
+data_raw_ODSP$bbch_code <- factor(data_raw_ODSP$bbch_code, ordered = TRUE)
+
+data_raw_ODSP$BBCH_code_clean <- factor(data_raw_ODSP$bbch_code_clean, ordered = TRUE)
+
+levels(data_raw_ODSP$BBCH_code_clean)
+ 
+
+#########################################
+## I.2) First Descriptive Visualisation ##
+########################################
+
+head(data_raw_ODSP)
+tail(data_raw_ODSP)
+table(data_raw_ODSP$Date)
+str(data_raw_ODSP$Habitat ,["autres"])
+summary(data_raw_ODSP)
+summary(data_raw_ODSP)
+dim(data_raw_ODSP)      # lignes + colonnes
+nrow(data_raw_ODSP)     # nombre de lignes
+ncol(data_raw_ODSP)     # nombre de colonnes
+rownames(data_raw_ODSP)
+colnames(data_raw_ODSP$Habitat)
+names(data_raw_ODSP)
+
+which(names(data_raw_ODSP) == "bbch_code") #position colonne
+
+class(data_raw_ODSP$Date)
+class(data_raw_ODSP$jour_julien)
+class(data_raw_ODSP$`stade phnologique`)
+class(data_raw_ODSP$bbch_code)
+unique(data_raw_ODSP$bbch_code) ### je vois chaque ligne
+
+
+#########################
+## Statistiques simples 
+
+mean(data_raw_ODSP$ma_variable)
+median(data_raw_ODSP$ma_variable)
+sd(data_raw_ODSP$ma_variable)
+min(data_raw_ODSP$ma_variable)
+max(data_raw_ODSP$ma_variable)
+mean(data_raw_ODSP$ma_variable, na.rm = TRUE)
+
+
+########################
+## Visualisation de base
+
+hist(data_raw_ODSP$ma_variable)
+boxplot(data_raw_ODSP$ma_variable)
+barplot(table(data_raw_ODSP$ma_variable))
+plot(data_raw_ODSP$x, data_raw_ODSP$y)
+cor(data_raw_ODSP$x, data_raw_ODSP$y, use = "complete.obs")
+
+
+##################
+#Vérifier les NA
+
+is.na(data_raw_ODSP)
+sum(is.na(data_raw_ODSP))
+
+
+####################################################################
+##### Création de la colonne variable dépendante date (jourjulien)
+
+class(data_raw_ODSP$Date)
+
+data_raw_ODSP$Date <- as.Date(data_raw_ODSP$Date, format = "%d/%m/%Y") ## transformer date
+
+data_raw_ODSP$jour_julien <- as.numeric(format(data_raw_ODSP$Date, "%j"))
+head(data_raw_ODSP[, c("Date", "jour_julien")])
+
+head(data_raw_ODSP$`stade phnologique`)
+
+
+
+
+
+## À CHECK ##
+
+ # = 165 espèces ! dans data_all_raw_siteinternet
+unique(sort(data_raw_ODSP$Nom_vernaculaire_clean))
+
+#ods + odsp = 91 espèces 
+
+```
+
+```{r}
+
+################################################################
+### I.3) Managing structure dataframe STATUTS ####################
+
+# Installer si pas encore fait (une seule fois)
+install.packages("readxl")
+# Charger le package
+library(readxl)
+
+# CHARGER LES DONNEES
+data_raw_ODSP_statuts <- read_excel(
+  "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/Liste_especes_ODS_complet.xlsx",
+  sheet = "Liste espèces"  # nom exact de l'onglet
+)
+
+# Vérifier
+head(data_raw_ODSP_statuts)
+str(data_raw_ODSP_statuts)
+unique(data_raw_ODSP_statuts)
+str(data_raw_ODSP_statuts)
+head(data_raw_ODSP_statuts)
+colnames(data_raw_ODSP_statuts)
+
+
+
+
+
+
+```
+
+# Excel files linked up for status
+
+```{r}
+
+# 3.1) SUITE
+
+## Cleaned la colonne 'Nom vernaculaire' !!!!!
+
+## Cette commande affiche tous les noms en 1 fois par ordre alphabétique
+
+data_raw_ODSP$ %>%
+  unique() %>%
+  sort()
+
+df_SPE_plantes$H1_specialisation %>%
+  unique() %>%
+  sort()
+
+# Mettre des NA dans les cases vides
+data_raw_ODSP <- data_raw_ODSP %>%
+  mutate(`Nom vernaculaire` = na_if(`Nom vernaculaire`, ""))
+#Vérifier
+table(data_raw_ODSP$`Nom vernaculaire`, useNA = "always") %>% sort(decreasing = TRUE) %>% head(10)
+
+
+## Liste des vrais noms d'espèces valides : 
+
+especes_valides <- c(
+  "Abricotier", "Abricotier bergeron", "Abricotier rouge du Roussillon",
+  "Amandier", "Amandier aï", "Amandier princesse",
+  "Arbousier", "Arbre de Judée", "Astragale de Marseille",
+  "Bouleau", "Céphalanthère à longues feuilles", "Cerisier",
+  "Cerisier burlat", "Cerisier griotte de Montmorency", "Châtaignier",
+  "Chêne blanc", "Chêne vert", "Cigale grise", "Ciste cotonneux",
+  "Ciste de Montpellier", "Citron de Provence", "Clathre rouge",
+  "Coccinelle", "Colchique d'automne", "Coquelicot", "Cormier",
+  "Coucou gris", "Couleuvre à collier", "Couleuvre de Montpellier",
+  "Crapaud commun", "Echasse blanche", "Epicea", "Forsythia",
+  "Frêne commun", "Genêt d'Espagne", "Guépier d'Europe",
+  "Hêtre commun", "Hirondelle des fenêtres", "Hirondelle rustique",
+  "Huppe fasciée", "Lavandin", "Lézard des murailles", "Lézard vert",
+  "Lilas", "Marronnier", "Martinet noir", "Mauve", "Mélèze",
+  "Micocoulier", "Milan noir", "Muguet", "Noisetier", "Noyer commun",
+  "Orchis bouc", "Orchis géant", "Orchis sureau", "Pacha à deux queues",
+  "Pariétaire de Judée", "Perce neige", "Petit duc scops",
+  "Peuplier noir d'Italie", "Pissenlit", "Platane", "Poirier",
+  "Poirier Williams", "Pommier", "Pommier cox orange pippin",
+  "Pommier golden delicious", "Pommier reine des reinettes",
+  "Primevère coucou", "Processionnaire du pin", "Prunier",
+  "Prunier mirabelle de Nancy", "Prunier quetsche",
+  "Rainette méridionale", "Robinier faux-acacia", "Rollier d'Europe",
+  "Rossignol philomène", "Salamandre tachetée", "Sapin pectiné",
+  "Sorbier des oiseleurs", "Sureau noir", "Tarente de Maurétanie",
+  "Thym commun", "Tussilage", "Viorne tin"
+)
+
+
+
+## Dictionnaire de correction encodage : 
+
+corrections_espèces <- c(
+  "Ã\u0083Â\u0089chasse blanche" = "Echasse blanche",
+  "Ã\u0083Â\u0089picea" = "Epicea",
+  "Amandier aÃ\u0083Â¯" = "Amandier aï",
+  "Arbre de JudÃ\u0083Â©e" = "Arbre de Judée",
+  "CÃ\u0083Â©phalanthÃ\u0083Â¨re Ã\u0083Â  longues feuilles" = "Céphalanthère à longues feuilles",
+  "ChÃ\u0083Â¢taignier" = "Châtaignier",
+  "ChÃ\u0083Âªne blanc" = "Chêne blanc",
+  "ChÃ\u0083Âªne vert" = "Chêne vert",
+  "Colchique dÃ¢Â\u0080Â\u0099automne" = "Colchique d'automne",
+  "Couleuvre Ã\u0083Â  collier" = "Couleuvre à collier",
+  "FrÃ\u0083Âªne commun" = "Frêne commun",
+  "GenÃ\u0083Âªt dÃ¢Â\u0080Â\u0099Espagne" = "Genêt d'Espagne",
+  "GuÃ\u0083Â©pier" = "Guépier d'Europe",
+  "HÃ\u0083Âªtre commun" = "Hêtre commun",
+  "Hirondelle des fenÃ\u0083Âªtres" = "Hirondelle des fenêtres",
+  "Huppe fasciÃ\u0083Â©e" = "Huppe fasciée",
+  "LÃ\u0083Â©zard des murailles" = "Lézard des murailles",
+  "LÃ\u0083Â©zard vert" = "Lézard vert",
+  "MÃ\u0083Â©lÃ\u0083Â¨ze" = "Mélèze",
+  "Orchis gÃ\u0083Â©ant" = "Orchis géant",
+  "Pacha Ã\u0083Â  deux queues" = "Pacha à deux queues",
+  "PariÃ\u0083Â©taire de JudÃ\u0083Â©e" = "Pariétaire de Judée",
+  "Peuplier noir dÃ¢Â\u0080Â\u0099Italie" = "Peuplier noir d'Italie",
+  "PrimevÃ\u0083Â¨re coucou" = "Primevère coucou",
+  "Rainette mÃ\u0083Â©ridionale" = "Rainette méridionale",
+  "Rossignol philomÃ\u0083Â¨le" = "Rossignol philomène",
+  "Salamandre tachetÃ\u0083Â©e" = "Salamandre tachetée",
+  "Sapin pectinÃ\u0083Â©" = "Sapin pectiné",
+  "Citron" = "Citron de Provence",
+  "Forsythia intermedia" = "Forsythia",
+  "Prunier quetsche d'Alsace" = "Prunier quetsche",
+  "Pommier reine de reinette" = "Pommier reine des reinettes",
+  "Tarente de Mauritanie" = "Tarente de Maurétanie"
+)
+
+## Appliquer les corrections
+data_raw_ODSP <- data_raw_ODSP %>%
+  mutate(Nom_vernaculaire_clean = ifelse(`Nom vernaculaire` %in% names(corrections_espèces),
+                                          corrections_espèces[`Nom vernaculaire`],
+                                          `Nom vernaculaire`)) %>%
+  mutate(Nom_vernaculaire_clean = ifelse(Nom_vernaculaire_clean %in% especes_valides,
+                                          Nom_vernaculaire_clean, NA))
+
+## Vérifier
+table(data_raw_ODSP$Nom_vernaculaire_clean, useNA = "always") %>% sort(decreasing = TRUE)
+
+
+######################
+## On fait la JOINTURE de la colonne data_raw_ODSPnomvernac des statuts vers le dataframe des jj !! objectif avoir un dataframe avec toutes nos variables.
+## Revoir la démarche pour la proposer au propre
+
+data_raw_ODSP <- data_raw_ODSP %>%
+  left_join(
+    data_raw_ODSP_statuts %>% 
+      select(`Espèce botanique / variétés`, 
+             `FR (statut TAXREF)`,
+             H1_specialisation, 
+             Statut_indigenat) %>%
+      distinct(`Espèce botanique / variétés`, .keep_all = TRUE),
+    by = c("Nom_vernaculaire_clean" = "Espèce botanique / variétés")
+  )
+
+data_raw_ODSP <- data_raw_ODSP %>%
+  select(-last_col())
+
+#NA ?
+
+data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean)) %>%
+  nrow()
+
+data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean),
+         !is.na(H1_specialisation)) %>%
+  select(Nom_vernaculaire_clean, jour_julien, bbch_code_clean, H1_specialisation) %>%
+  head(20)
+
+# Voir les niveaux de bbch_code_clean
+levels(data_raw_ODSP$bbch_code_clean)
+
+# Combien d'observations par espèce
+data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean)) %>%
+  count(Nom_vernaculaire_clean, H1_specialisation) %>%
+  arrange(desc(n))
+
+
+install.packages("writexl")
+library(writexl)
+
+
+write_xlsx(data_raw_ODSP, 
+           "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/data_raw_ODSP.xlsx")
+
+```
+
+```{r}
+
+
+library(ggplot2)
+library(dplyr)
+
+# Palette couleurs BBCH
+couleurs_bbch <- c(
+  "11" = "#A8D5A2",  # feuillaison début - vert clair
+  "15" = "#4CAF50",  # feuillaison avancée - vert
+  "32" = "#FFF176",  # montaison - jaune clair
+  "61" = "#FFB74D",  # floraison début - orange
+  "65" = "#FF7043",  # floraison pleine - orange foncé
+  "85" = "#64B5F6",  # fructification - bleu
+  "91" = "#CE93D8",  # sénescence début - violet clair
+  "95" = "#7B1FA2"   # sénescence avancée - violet
+)
+
+# Préparer les données dans un dataframe avec notre sélection
+df_cal <- data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean),
+         !is.na(H1_specialisation)) %>%
+  mutate(bbch_code_clean = as.character(as.integer(bbch_code_clean)))
+
+## Moyenne du jour julien par espèce et stade BBCH
+df_moy <- df_cal %>%
+  group_by(Nom_vernaculaire_clean, H1_specialisation, bbch_code_clean) %>%
+  summarise(
+    jour_moyen = mean(jour_julien, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+###########################################################################
+## CRÉATION 3 CALENDRIERS PHÉNO / un graphique par statut GÉNÉ-INTER-SPÉ
+# pour toutes les espèces
+
+for (statut in c("Généraliste", "Intermédiaire", "Spécialiste")) {
+  
+  df_plot_plantes_gene <- df_moy_plantes_gene %>% filter(H1_specialisation == statut)
+  
+  p <- ggplot(df_plot_plantes_gene, aes(x = jour_moyen, 
+                            y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                            color = bbch_code_clean,
+                            size = n)) +
+    geom_point(alpha = 0.85) +
+    scale_color_manual(values = couleurs_bbch,
+                       name = "Stade BBCH",
+                       labels = c("11" = "11 - Feuillaison début",
+                                  "15" = "15 - Feuillaison",
+                                  "32" = "32 - Montaison",
+                                  "61" = "61 - Floraison début",
+                                  "65" = "65 - Floraison pleine",
+                                  "85" = "85 - Fructification",
+                                  "91" = "91 - Sénescence début",
+                                  "95" = "95 - Sénescence")) +
+    scale_size_continuous(name = "Nb observations", range = c(2, 8)) +
+    scale_x_continuous(breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335),
+                       labels = c("Jan","Fév","Mar","Avr","Mai","Jun",
+                                  "Jul","Aoû","Sep","Oct","Nov","Déc")) +
+    labs(
+      title = paste0("Calendrier phénologique — ", statut, "s"),
+      subtitle = "Jour moyen d'apparition de chaque stade BBCH par espèce",
+      x = "Jour julien (mois)",
+      y = "Espèce"
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title = element_text(face = "bold", size = 14),
+      plot.subtitle = element_text(color = "grey50"),
+      axis.text.y = element_text(size = 9),
+      legend.position = "right",
+      panel.grid.major.x = element_line(color = "grey90"),
+      panel.grid.minor.x = element_blank()
+    )
+  
+  print(p)
+  
+  # Sauvegarder
+  ggsave(paste0("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_", 
+                statut, ".png"),
+         plot = p, width = 14, height = 10, dpi = 300)
+
+}
+
+
+###############################################################
+#### CRÉATION 1 CALENDRIER PHENO ESPÈCES PLANTES GÉNÉRALISTES
+
+
+unique(df_cal_generaliste_plante$bbch_code_clean)
+str(df_cal_generaliste_plante)
+class(df_cal_generaliste_plante$bbch_code_clean)
+names(couleurs_bbch)
+setdiff(unique(df_moy_plantes_gene$bbch_code_clean), names(couleurs_bbch))
+
+# DATAFRAME BASE COMMUNE — AVEC filtre plantes + SANS LES NA
+df_SPE_plantes <- data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean),
+         !is.na(H1_specialisation2),
+         `Plante / Animal` == "plantes","") %>%
+   mutate(bbch_code_clean = as.character(levels(bbch_code_clean))[bbch_code_clean])
+
+
+
+## Jour julien moyen
+df_moy_plantes_SPE <- df_SPE_plantes %>%
+  group_by(Nom_vernaculaire_clean, H1_specialisation, bbch_code_clean) %>%
+  summarise(jour_moyen = mean(jour_julien, na.rm = TRUE),
+            n = n(), .groups = "drop")
+
+couleurs_bbch <- c("11"="#A8D5A2","15"="#4CAF50","32"="#FFF176",
+                   "61"="#FFB74D","65"="#FF7043","85"="#64B5F6",
+                   "91"="#CE93D8","95"="#7B1FA2")
+
+mois_breaks <- c(1,32,60,91,121,152,182,213,244,274,305,335)
+mois_labs   <- c("Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc")
+
+df_plot_plantes_gene <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Généraliste")
+
+
+ggplot(df_plot_plantes_gene, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes généralistes",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_generalistes.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+
+###############################################################
+#### CRÉATION 1 CALENDRIER PHENO ESPÈCES PLANTES INTER 
+
+
+
+df_plot_plantes_inter <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Intermédiaire")
+
+ggplot(df_plot_plantes_inter, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes intermédiaires",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_intermédiaires.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+###############################################################
+#### CRÉATION 1 CALENDRIER PHENO ESPÈCES PLANTES spécialistes
+
+
+df_plot_plantes_spécial <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Spécialiste")
+
+
+ggplot(df_plot_plantes_spécial, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes intermédiaires",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_spécialistes.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+
+####### 
+##FUSION INTER ET SPECIAL EN SPÉCIALISTES
+
+data_raw_ODSP_statuts <- data_raw_ODSP_statuts %>%
+  mutate(H1_specialisation2 = case_when(
+    H1_specialisation == "Généraliste" ~ "Généraliste",
+    H1_specialisation %in% c("Intermédiaire", "Spécialiste") ~ "Spécialiste",
+    TRUE ~ NA_character_
+  ))
+
+# Compter les catégories
+
+data_raw_ODSP_statuts %>%
+  filter(!is.na(H1_specialisation2)) %>%
+  count(H1_specialisation2) %>%
+  arrange(desc(n))
+
+data_raw_ODSP_statuts$H1_SPECIALISTES = NULL
+
+# Comptage simple
+table(data_raw_ODSP_statuts$H1_specialisation2)
+
+# Ou en pourcentage
+prop.table(table(data_raw_ODSP_statuts$H1_specialisation2)) * 100
+
+# Avec dplyr (plus lisible) 
+# PLANTES
+
+comptage_plantes <- data_raw_ODSP_statuts %>%
+  filter(Type %in% c("Fruitiers", "Arbres et arbustes", "Herbacées et arbrisseaux")) %>%
+  count(H1_specialisation2, sort = TRUE) %>%
+  mutate(pct = round(n / sum(n) * 100, 1))
+
+print(comptage_plantes)
+
+# ANIMAUX
+
+comptage_animaux <- data_raw_ODSP_statuts %>%
+  filter(!Type %in% c("Fruitiers", "Arbres et arbustes", "Herbacées et arbrisseaux","Champignons")) %>%
+  count(H1_specialisation2, sort = TRUE) %>%
+  mutate(pct = round(n / sum(n) * 100, 1))
+
+print(comptage_animaux)
+
+########################
+## CALENDRIER PHENO GENE VS SPE
+
+rm()
+
+
+# On enlève le statut d'inter dans le df final moyenné
+df_moy_plantes_SPE$H1_specialisation[df_moy_plantes_SPE$H1_specialisation == "Intermédiaire"] = "Spécialiste"
+
+
+# essayer d'ajouter spe2 ???!!!
+df_plot_plantes_spécialiste2 <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Spécialiste")
+
+
+## plot cal spe2
+
+ggplot(df_plot_plantes_spécialiste2, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes Spécialistes",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_spécialistes2.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+
+
+# puissance statistique à faire avec le df
+
+puissancestat = data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(H1_specialisation)) %>%
+  count(H1_specialisation)
+
+print(puissancestat)
+
+unique(data_raw_ODSP$`Plante / Animal`)
+
+
+
+```
+
+# CALENDRIERS PHENOLOGIQUES - INDIGENAT
+
+```{r}
+
+data_raw_ODSP$Statut_indigenat_2 %>%
+  unique() %>%
+  sort()
+
+#compter "plantes"
+sum(data_raw_ODSP$`Plante / Animal` == "plantes", na.rm = TRUE)
+
+df_INDI_plantes <- data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean),
+         !is.na(Statut_indigenat),
+         `Plante / Animal` == "plantes") %>%
+   mutate(bbch_code_clean = as.character(levels(bbch_code_clean))[bbch_code_clean])
+
+df_moy_plantes_INDI <- df_INDI_plantes %>%
+  group_by(Nom_vernaculaire_clean, Statut_indigenat, bbch_code_clean) %>%
+  summarise(
+    jour_moyen = mean(jour_julien, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+#PLOT CULTIVEES EXOTIQUES
+
+df_plot_plantes_indigenat_CE <- df_moy_plantes_INDI %>% filter(Statut_indigenat == "Cultivée exotique")
+
+
+  ggplot(df_plot_plantes_indigenat_CE, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes cultivées exotiques",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_cultiveesexotiques.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+#PLOT CI
+
+df_plot_plantes_indigenat_CI <- df_moy_plantes_INDI %>% filter(Statut_indigenat == "Cultivée indigène")
+
+
+  ggplot(df_plot_plantes_indigenat_CI, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes cultivées indigènes",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_cultiveesindigenes.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+
+# PLOT IS
+
+df_plot_plantes_indigenat_IS <- df_moy_plantes_INDI %>% filter(Statut_indigenat == "Indigène sauvage")
+
+
+  ggplot(df_plot_plantes_indigenat_IS, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes indigènes sauvages",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_indigenessauvages.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+#######################
+### Penchant indigènes ou exotiques pas le top mais perspectives...
+
+# Lire le fichier
+data_raw_ODSP_statuts2 <- read_excel(
+  "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/Liste_especes_ODS_complet_v2.xlsx",
+  sheet = "Liste espèces"  # nom exact de l'onglet
+)
+
+
+data_raw_ODSP = data_raw_ODSP[, 1:(ncol(data_raw_ODSP)-2) ]
+
+data_raw_ODSP$Statut_indigenat <- ifelse(data_raw_ODSP$Statut_indigenat %in% c("Cultivée exotique", "Naturalisée"), 
+                                     "Exotique", 
+                                     data_raw_ODSP$Statut_indigenat)
+
+data_raw_ODSP$Statut_indigenat <- ifelse(data_raw_ODSP$Statut_indigenat %in% c("Cultivée indigène", "Indigène sauvage" ), 
+                                     "Indigène", 
+                                     data_raw_ODSP$Statut_indigenat)
+
+data_raw_ODSP$Statut_indigenat %>%
+  unique()
+
+
+#ajout colonne statut indi 2
+data_raw_ODSP_statuts$Statut_indigenat_2 <- data_raw_ODSP_statuts2$Statut_indigenat_2cat
+
+
+colnames(data_raw_ODSP_statuts)[1] <- "Espèces"
+
+
+
+
+# Vérifier
+table(data_raw_ODSP$Statut_indigenat_2, useNA = "always")
+
+#alternatives à subset ?
+
+df_INDI_plantes2 <- data_raw_ODSP %>%
+  filter(!is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean),
+         !is.na(Statut_indigenat),
+         `Plante / Animal` == "plantes") %>%
+   mutate(bbch_code_clean = as.character(levels(bbch_code_clean))[bbch_code_clean])
+
+df_moy_plantes_INDI2 <- df_INDI_plantes2 %>%
+  group_by(Nom_vernaculaire_clean, Statut_indigenat, bbch_code_clean) %>%
+  summarise(
+    jour_moyen = mean(jour_julien, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+
+
+# PLOT INDI2 indigène
+
+df_plot_plantes_indi <- df_moy_plantes_INDI2 %>% filter(Statut_indigenat ==  "Indigène")
+
+
+  ggplot(df_plot_plantes_indi, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes indigènes",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_indigenes.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+# PLOT INDI2 exotiques
+
+df_plot_plantes_exo <- df_moy_plantes_INDI2 %>% filter(Statut_indigenat ==  "Exotique")
+
+
+  ggplot(df_plot_plantes_exo, aes(x = jour_moyen,
+                    y = reorder(Nom_vernaculaire_clean, jour_moyen),
+                    color = bbch_code_clean, size = n)) +
+  geom_point(alpha = 0.85) +
+  scale_color_manual(values = couleurs_bbch, name = "Stade BBCH") +
+  scale_size_continuous(name = "Nb obs", range = c(3, 10)) +
+  scale_x_continuous(breaks = mois_breaks, labels = mois_labs, limits = c(1, 365)) +
+  labs(title = "Calendrier phénologique — Plantes exotiques",
+       x = "Mois", y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.grid.minor = element_blank())
+
+ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_exotiques.png",
+       width = 14, height = 9, dpi = 300, bg = "white")
+
+
+
+
+
+
+comptage_plantes_indi <- data_raw_ODSP_statuts %>%
+  filter(Type %in% c("Fruitiers", "Arbres et arbustes", "Herbacées et arbrisseaux")) %>%
+  count(Statut_indigenat_2, sort = TRUE) %>%
+  mutate(pct = round(n / sum(n) * 100, 1))
+
+print(comptage_plantes_indi)
+
+```
+
+```{r}
+library(dplyr)
+
+df_test <- data_raw_ODSP %>%
+  filter(`Plante / Animal` == "plantes",
+         !is.na(jour_julien),
+         !is.na(bbch_code_clean),
+         !is.na(Nom_vernaculaire_clean),
+         H1_specialisation %in% c("Généraliste", "Spécialiste")) %>%
+  mutate(bbch_code_clean = as.character(levels(bbch_code_clean))[bbch_code_clean]) %>%
+  group_by(Nom_vernaculaire_clean, H1_specialisation, bbch_code_clean) %>%
+  summarise(jour_moyen = mean(jour_julien), n_obs = n(), .groups = "drop") %>%
+  filter(n_obs >= 5)   # exclure espèces avec trop peu d'observations
+Étape 2 — Vérifier les pré-requis (normalité, variance)
+# On commence par le stade BBCH 61 (floraison début) — exemple
+df_61 <- df_test %>% filter(bbch_code_clean == "61")
+
+# Normalité par groupe
+shapiro.test(df_61$jour_moyen[df_61$H1_specialisation == "Généraliste"])
+shapiro.test(df_61$jour_moyen[df_61$H1_specialisation == "Spécialiste"])
+
+# Homogénéité des variances
+var.test(jour_moyen ~ H1_specialisation, data = df_61)
+
+# Visualisation rapide
+boxplot(jour_moyen ~ H1_specialisation, data = df_61,
+        main = "BBCH 61 — Floraison début", ylab = "Jour julien moyen")
+Étape 3 — Test statistique
+# Si normalité OK + variances égales → test de Student
+t.test(jour_moyen ~ H1_specialisation, data = df_61, var.equal = TRUE)
+
+# Si variances inégales → Welch
+t.test(jour_moyen ~ H1_specialisation, data = df_61, var.equal = FALSE)
+
+# Si non-normal → Wilcoxon (Mann-Whitney)
+wilcox.test(jour_moyen ~ H1_specialisation, data = df_61)
+Étape 4 — Boucle sur tous les stades BBCH
+library(purrr)
+
+resultats <- df_test %>%
+  group_split(bbch_code_clean) %>%
+  map_dfr(function(df) {
+    if (length(unique(df$H1_specialisation)) < 2) return(NULL)
+    test <- wilcox.test(jour_moyen ~ H1_specialisation, data = df)
+    moyennes <- df %>% group_by(H1_specialisation) %>% 
+                      summarise(m = mean(jour_moyen), n = n())
+    tibble(
+      bbch = unique(df$bbch_code_clean),
+      moy_gen = moyennes$m[moyennes$H1_specialisation == "Généraliste"],
+      moy_spe = moyennes$m[moyennes$H1_specialisation == "Spécialiste"],
+      diff_jours = moy_gen - moy_spe,
+      p_value = test$p.value,
+      signif = ifelse(test$p.value < 0.05, "*", "ns")
+    )
+  })
+
+print(resultats)
+
+
+shapiro.test(df_plot_plantes_gene$jour_moyen[df_plot_plantes_gene$H1_specialisation == "Généraliste"])
+
+```
+
+##### *GRAPHS V1. ODSP*
+
+```{r}
+
+#Moy - sd - med pour chauqe espèce et stades bbch
+
+df_moy_base <- data_raw_ODSP %>%
+  filter(!is.na(jour_julien), !is.na(bbch_code_clean), 
+         !is.na(Nom_vernaculaire_clean)) %>%
+  group_by(Nom_vernaculaire_clean, bbch_code_clean) %>%
+  summarise(
+    jour_moyen = mean(jour_julien, na.rm = TRUE),
+    jour_sd    = sd(jour_julien, na.rm = TRUE),
+    jour_med   = median(jour_julien, na.rm = TRUE),
+    n          = n(),
+    .groups    = "drop"
+  )
+
+
+df_sum = df_moy_base %>%
+  summarise(total = sum(n),
+            n_especes = n_distinct(Nom_vernaculaire_clean),
+            n_stades = n_distinct(bbch_code_clean))
+
+
+
+
+
+
+
+
+## boxplot du jour julien par stades
+
+data_raw_ODSP$bbch_code_clean <- as.factor(data_raw_ODSP$bbch_code_clean)
+
+
+####################################################################
+#### Est-ce que les stades suivent une progression temporelle ? ###
+# Le milieu influence-t-il la phénologie ? Le milieu a un impact sur les stades phénologiques
+
+#BOXPLOT1
+boxplot(jour_julien ~ bbch_code_clean, data = data_raw_ODSP,
+        xlab = "Stade phénologique",
+        ylab = "Jour julien",
+        main = "Distribution du jour julien par stade")
+
+#############################################################
+####### Certaines espèces sont-elles plus précoces ?  #######
+#BOXPLOT2
+
+boxplot(jour_julien ~ bbch_code_clean, data = data_raw_ODSP,
+        xlab = "Stade phénologique (BBCH)",
+        ylab = "Jour julien",
+        main = "Distribution du jour julien par stade",
+        col = "lightgreen",
+        las = 2)
+
+stripchart(jour_julien ~ bbch_code_clean, data = data_raw_ODSP,
+           vertical = TRUE, method = "jitter",
+           add = TRUE, col = "darkgreen")
+
+tapply(data_raw_ODSP$jour_julien, data_raw_ODSP$bbch_code_clean, mean)
+
+#Pour un espèce
+
+boxplot(jour_julien ~ bbch_code_clean,
+        data = data_raw_ODSP[data_raw_ODSP$`Nom vernaculaire` == "Abricotier", ])
+
+#####################################
+############## scatter
+
+plot(data_raw_ODSP$jour_julien,
+     jitter(as.numeric(data_raw_ODSP$bbch_code_clean)),
+     xlab = "Jour julien",
+     ylab = "Stade (jitter)",
+     main = "Relation stade ~ temps")
+
+#############################################
+################## Hist
+
+hist(data_raw_ODSP$jour_julien,
+     main = "Distribution des jours juliens",
+     xlab = "Jour julien",
+     col = "lightblue")
+
+#################################################################
+###################  Densité de probabilité
+
+plot(density(data_raw_ODSP$jour_julien, na.rm = TRUE),
+     main = "Densité des jours juliens",
+     xlab = "Jour julien")
+
+subset_data_ODSP_Abricot_Habitat <- data_raw_ODSP[
+  data_raw_ODSP$`Nom vernaculaire` == "Abricotier" &
+  data_raw_ODSP$bbch_code_clean == 65 &
+  data_raw_ODSP$Habitat == "ville",
+]
+
+
+nrow(subset_data_ODSP_Abricot_BouchesduRhône)
+
+table(data_raw_ODSP$bbch_code_clean, data_raw_ODSP$`Nom vernaculaire`)
+
+#######################################################################
+######## Quand est ce que les évènements arrivent en général ? #######
+
+plot(density(data_raw_ODSP$jour_julien[
+  data_raw_ODSP$`Nom vernaculaire` == "Abricotier" &
+  data_raw_ODSP$bbch_code_clean == 65 &
+  data_raw_ODSP$Habitat == "ville"
+], na.rm = TRUE),
+col = "blue", lwd = 2,
+main = "Densité JJ - Abricotier, stade 65, ville",
+xlab = "Jour julien")
+
+lines(density(data_raw_ODSP$jour_julien[
+  data_raw_ODSP$`Nom vernaculaire` == "Abricotier" &
+  data_raw_ODSP$bbch_code_clean == 65 &
+  data_raw_ODSP$Habitat == "ville"
+], na.rm = TRUE),
+col = "red", lwd = 2)
+
+
+```
+
+### TEST RADAR GRAPH ??
+
+```{r}
+install.packages("fmsb")
+
+
+subset_nomespece <- data_raw_ODSP[data_raw_ODSP$`Nom vernaculaire` == "Abricotier", ]
+
+tab_bbch <- table(subset_nomespece$bbch_code_clean)
+prop_bbch <- prop.table(tab_bbch)
+
+radar_df <- as.data.frame(t(prop_bbch))
+radar_df[] <- lapply(radar_df, as.numeric)
+
+radar_df <- rbind(
+  rep(1, ncol(radar_df)),
+  rep(0, ncol(radar_df)),
+  radar_df
+)
+
+colnames(radar_df) <- names(prop_bbch)
+
+radarchart(radar_df,
+           axistype = 1,
+           pcol = "blue",
+           pfcol = rgb(0, 0, 1, 0.3),
+           plwd = 2,
+           cglcol = "grey",
+           cglty = 1,
+           axislabcol = "grey30",
+           vlcex = 0.8,
+           title = "Proportion des stades BBCH - Abricotier")
+
+ta(data_raw_ODSP$Habitat)
+
+
+str(data_raw_ODSP$`Localit de la station`)
+unique(data_raw_ODSP$Habitat)
+
+max(data_raw_ODSP$`Nom vernaculaire`)
 ```

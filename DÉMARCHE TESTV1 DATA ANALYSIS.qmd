@@ -50,8 +50,11 @@ chunk : \`\`\`{r}\
 
 ## Bibliothèques & packages nécessaires ??
 
-library(dplyr)
+library(dplyr) # dplyr est-ce une alternative à subset ???
 library(stringr)
+library(ggplot2)
+library(readxl)
+library(writexl)
 
 ## Manipulations script R (attention)
 gsub("data_raw_ODSP", "data_raw_ODSP", script)
@@ -103,7 +106,10 @@ data_raw_ODSP <- data_raw_ODSP[, c(
   6:28        # le reste
 )]
 
+
+## Créer la colonne bbch_code_clean
 ## Supprimer les erreurs (chiffres) et mettre NA à la place
+
 data_raw_ODSP$bbch_code_clean <- ifelse(
   grepl("^[0-9]{2,3}$", data_raw_ODSP$bbch_code),
   data_raw_ODSP$bbch_code,
@@ -200,9 +206,6 @@ head(data_raw_ODSP[, c("Date", "jour_julien")])
 head(data_raw_ODSP$`stade phnologique`)
 
 
-
-
-
 ## À CHECK ##
 
  # = 165 espèces ! dans data_all_raw_siteinternet
@@ -215,14 +218,10 @@ unique(sort(data_raw_ODSP$Nom_vernaculaire_clean))
 ```{r}
 
 ################################################################
-### I.3) Managing structure dataframe STATUTS ####################
+### I.3.1) Managing structure dataframe STATUTS ####################
 
-# Installer si pas encore fait (une seule fois)
-install.packages("readxl")
-# Charger le package
-library(readxl)
 
-# CHARGER LES DONNEES
+# CHARGER LES DONNEES (fichier xlsx)
 data_raw_ODSP_statuts <- read_excel(
   "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/Liste_especes_ODS_complet.xlsx",
   sheet = "Liste espèces"  # nom exact de l'onglet
@@ -239,27 +238,14 @@ colnames(data_raw_ODSP_statuts)
 
 
 
-
-
-```
-
-# Excel files linked up for status
-
-```{r}
-
-# 3.1) SUITE
-
 ## Cleaned la colonne 'Nom vernaculaire' !!!!!
 
 ## Cette commande affiche tous les noms en 1 fois par ordre alphabétique
 
-data_raw_ODSP$ %>%
+data_raw_ODSP$`Nom vernaculaire` %>%
   unique() %>%
-  sort()
+  sort()                               #On vois les erreurs d'encodage
 
-df_SPE_plantes$H1_specialisation %>%
-  unique() %>%
-  sort()
 
 # Mettre des NA dans les cases vides
 data_raw_ODSP <- data_raw_ODSP %>%
@@ -351,6 +337,17 @@ data_raw_ODSP <- data_raw_ODSP %>%
 table(data_raw_ODSP$Nom_vernaculaire_clean, useNA = "always") %>% sort(decreasing = TRUE)
 
 
+
+
+```
+
+# Excel files linked up for status
+
+```{r}
+
+
+
+# 3.2)
 ######################
 ## On fait la JOINTURE de la colonne data_raw_ODSPnomvernac des statuts vers le dataframe des jj !! objectif avoir un dataframe avec toutes nos variables.
 ## Revoir la démarche pour la proposer au propre
@@ -366,6 +363,7 @@ data_raw_ODSP <- data_raw_ODSP %>%
     by = c("Nom_vernaculaire_clean" = "Espèce botanique / variétés")
   )
 
+#suppr der col
 data_raw_ODSP <- data_raw_ODSP %>%
   select(-last_col())
 
@@ -381,7 +379,8 @@ data_raw_ODSP %>%
   filter(!is.na(jour_julien),
          !is.na(bbch_code_clean),
          !is.na(Nom_vernaculaire_clean),
-         !is.na(H1_specialisation)) %>%
+         !is.na(H1_specialisation),
+!is.na(Statut_indigenat)) %>%
   select(Nom_vernaculaire_clean, jour_julien, bbch_code_clean, H1_specialisation) %>%
   head(20)
 
@@ -399,8 +398,6 @@ data_raw_ODSP %>%
 
 install.packages("writexl")
 library(writexl)
-
-
 write_xlsx(data_raw_ODSP, 
            "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/data_raw_ODSP.xlsx")
 
@@ -408,9 +405,7 @@ write_xlsx(data_raw_ODSP,
 
 ```{r}
 
-
-library(ggplot2)
-library(dplyr)
+#4.1) Génération calendriers SPECIALISATION 1
 
 # Palette couleurs BBCH
 couleurs_bbch <- c(
@@ -442,7 +437,7 @@ df_moy <- df_cal %>%
   )
 
 ###########################################################################
-## CRÉATION 3 CALENDRIERS PHÉNO / un graphique par statut GÉNÉ-INTER-SPÉ
+## CRÉATION 3 CALENDRIERS PHÉNO en 1 / un graphique par statut GÉNÉ-INTER-SPÉ
 # pour toutes les espèces
 
 for (statut in c("Généraliste", "Intermédiaire", "Spécialiste")) {
@@ -493,10 +488,9 @@ for (statut in c("Généraliste", "Intermédiaire", "Spécialiste")) {
 
 }
 
-
+# 4.2) Génération calendriers SPÉCIIALISATION 2
 ###############################################################
 #### CRÉATION 1 CALENDRIER PHENO ESPÈCES PLANTES GÉNÉRALISTES
-
 
 unique(df_cal_generaliste_plante$bbch_code_clean)
 str(df_cal_generaliste_plante)
@@ -504,7 +498,7 @@ class(df_cal_generaliste_plante$bbch_code_clean)
 names(couleurs_bbch)
 setdiff(unique(df_moy_plantes_gene$bbch_code_clean), names(couleurs_bbch))
 
-# DATAFRAME BASE COMMUNE — AVEC filtre plantes + SANS LES NA
+## DATAFRAME BASE COMMUNE — AVEC FILTRE !PLANTES! + SANS LES !NA
 df_SPE_plantes <- data_raw_ODSP %>%
   filter(!is.na(jour_julien),
          !is.na(bbch_code_clean),
@@ -513,7 +507,9 @@ df_SPE_plantes <- data_raw_ODSP %>%
          `Plante / Animal` == "plantes","") %>%
    mutate(bbch_code_clean = as.character(levels(bbch_code_clean))[bbch_code_clean])
 
-
+df_SPE_plantes$H1_specialisation %>%
+  unique() %>%
+  sort()
 
 ## Jour julien moyen
 df_moy_plantes_SPE <- df_SPE_plantes %>%
@@ -521,16 +517,12 @@ df_moy_plantes_SPE <- df_SPE_plantes %>%
   summarise(jour_moyen = mean(jour_julien, na.rm = TRUE),
             n = n(), .groups = "drop")
 
-couleurs_bbch <- c("11"="#A8D5A2","15"="#4CAF50","32"="#FFF176",
-                   "61"="#FFB74D","65"="#FF7043","85"="#64B5F6",
-                   "91"="#CE93D8","95"="#7B1FA2")
-
 mois_breaks <- c(1,32,60,91,121,152,182,213,244,274,305,335)
 mois_labs   <- c("Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc")
 
 df_plot_plantes_gene <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Généraliste")
 
-
+#plot gene
 ggplot(df_plot_plantes_gene, aes(x = jour_moyen,
                     y = reorder(Nom_vernaculaire_clean, jour_moyen),
                     color = bbch_code_clean, size = n)) +
@@ -552,10 +544,9 @@ ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_ge
 ###############################################################
 #### CRÉATION 1 CALENDRIER PHENO ESPÈCES PLANTES INTER 
 
-
-
 df_plot_plantes_inter <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Intermédiaire")
 
+#plot inter
 ggplot(df_plot_plantes_inter, aes(x = jour_moyen,
                     y = reorder(Nom_vernaculaire_clean, jour_moyen),
                     color = bbch_code_clean, size = n)) +
@@ -579,7 +570,7 @@ ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_in
 
 df_plot_plantes_spécial <- df_moy_plantes_SPE %>% filter(H1_specialisation == "Spécialiste")
 
-
+#plot spécial
 ggplot(df_plot_plantes_spécial, aes(x = jour_moyen,
                     y = reorder(Nom_vernaculaire_clean, jour_moyen),
                     color = bbch_code_clean, size = n)) +
@@ -597,8 +588,9 @@ ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_sp
        width = 14, height = 9, dpi = 300, bg = "white")
 
 
+#######################################################
+## 4.3) Génération calendriers SPÉCIALISATION 3
 
-####### 
 ##FUSION INTER ET SPECIAL EN SPÉCIALISTES
 
 data_raw_ODSP_statuts <- data_raw_ODSP_statuts %>%
@@ -642,10 +634,12 @@ comptage_animaux <- data_raw_ODSP_statuts %>%
 
 print(comptage_animaux)
 
-########################
-## CALENDRIER PHENO GENE VS SPE
+#######################################
+#######################################
+## CALENDRIER PHENO SPE2
+##################################
 
-rm()
+# Pas de GENE2 car le même
 
 
 # On enlève le statut d'inter dans le df final moyenné
@@ -657,7 +651,6 @@ df_plot_plantes_spécialiste2 <- df_moy_plantes_SPE %>% filter(H1_specialisation
 
 
 ## plot cal spe2
-
 ggplot(df_plot_plantes_spécialiste2, aes(x = jour_moyen,
                     y = reorder(Nom_vernaculaire_clean, jour_moyen),
                     color = bbch_code_clean, size = n)) +
@@ -697,7 +690,7 @@ unique(data_raw_ODSP$`Plante / Animal`)
 
 ```{r}
 
-data_raw_ODSP$Statut_indigenat_2 %>%
+data_raw_ODSP$`Plante / Animal` %>%
   unique() %>%
   sort()
 
@@ -792,38 +785,35 @@ ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_in
 
 # Lire le fichier
 data_raw_ODSP_statuts2 <- read_excel(
-  "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/Liste_especes_ODS_complet_v2.xlsx",
+  "/Users/marthymgl/Desktop/STAGE M2/Marthy R project/DATA PHENOLOGIE/DATA ODS-ODSP/Liste_especes_ODS_complet.xlsx",
   sheet = "Liste espèces"  # nom exact de l'onglet
 )
 
-
+#ajustement
 data_raw_ODSP = data_raw_ODSP[, 1:(ncol(data_raw_ODSP)-2) ]
 
+#SEULEMENT EXOTIQUE
 data_raw_ODSP$Statut_indigenat <- ifelse(data_raw_ODSP$Statut_indigenat %in% c("Cultivée exotique", "Naturalisée"), 
                                      "Exotique", 
                                      data_raw_ODSP$Statut_indigenat)
-
+#SEULEMENT INDIGÈNE
 data_raw_ODSP$Statut_indigenat <- ifelse(data_raw_ODSP$Statut_indigenat %in% c("Cultivée indigène", "Indigène sauvage" ), 
                                      "Indigène", 
                                      data_raw_ODSP$Statut_indigenat)
 
 data_raw_ODSP$Statut_indigenat %>%
-  unique()
+  unique() %>% sort()
 
 
-#ajout colonne statut indi 2
+#ajout colonne statut indi2
 data_raw_ODSP_statuts$Statut_indigenat_2 <- data_raw_ODSP_statuts2$Statut_indigenat_2cat
-
-
-colnames(data_raw_ODSP_statuts)[1] <- "Espèces"
-
-
-
 
 # Vérifier
 table(data_raw_ODSP$Statut_indigenat_2, useNA = "always")
 
-#alternatives à subset ?
+#Renommer la colonne en "Espèces" = plus simple
+colnames(data_raw_ODSP_statuts)[1] <- "Espèces"
+
 
 df_INDI_plantes2 <- data_raw_ODSP %>%
   filter(!is.na(jour_julien),
@@ -887,10 +877,6 @@ ggsave("/Users/marthymgl/Desktop/STAGE M2/Marthy R project/calendrier_plantes_ex
        width = 14, height = 9, dpi = 300, bg = "white")
 
 
-
-
-
-
 comptage_plantes_indi <- data_raw_ODSP_statuts %>%
   filter(Type %in% c("Fruitiers", "Arbres et arbustes", "Herbacées et arbrisseaux")) %>%
   count(Statut_indigenat_2, sort = TRUE) %>%
@@ -899,6 +885,8 @@ comptage_plantes_indi <- data_raw_ODSP_statuts %>%
 print(comptage_plantes_indi)
 
 ```
+
+# TEST STAT
 
 ```{r}
 library(dplyr)
@@ -963,7 +951,7 @@ shapiro.test(df_plot_plantes_gene$jour_moyen[df_plot_plantes_gene$H1_specialisat
 
 ```
 
-##### *GRAPHS V1. ODSP*
+## Test basegraph
 
 ```{r}
 
@@ -1088,7 +1076,7 @@ col = "red", lwd = 2)
 
 ```
 
-### TEST RADAR GRAPH ??
+### TEST RADAR GRAPH 
 
 ```{r}
 install.packages("fmsb")
